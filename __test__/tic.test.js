@@ -115,3 +115,107 @@ describe("-- testes sobre condições de vitória --", () => {
     });
 
 });
+
+describe("TicTacToeGame - comportamento básico", () => {
+
+  let game;
+  let size = 3;
+  
+  beforeEach(() => {
+    game = new TicTacToeGame(size);
+  });
+
+  test("sequência de jogadas leva à vitória do jogador X", () => {
+
+    const moves = [
+      [0,0], [1,0], 
+      [0,1], [1,1], 
+      [0,2]
+    ]
+    for (const [row,collum] of moves) {
+      game.makeMove(row,collum);
+    }
+    
+    expect(game.getWinner()).toBe("X");
+  });
+
+  test("sequência de jogadas resulta em empate", () => {
+
+    const moves = [
+      [0,0],[0,1],
+      [0,2],[1,1],
+      [1,0],[1,2],
+      [2,1],[2,0],
+      [2,2],
+    ];
+    for (const [row,collum] of moves) {
+      game.makeMove(row,collum);
+    }
+
+    expect(game.isDraw).toBe(true);
+    expect(game.getWinner()).toBeNull();
+  });
+
+  test("impede jogada em célula já ocupada retornando CELL_TAKEN", () => {
+
+    const row = game.makeMove(0,0);
+    const row2 = game.makeMove(0,0);
+
+    expect(row2).toEqual({ok: false, reason: "CELL_TAKEN"});
+  });
+
+  test("impede jogada fora do tabuleiro retornando OUT_OF_BOUNDS", () => {
+
+    const row = game.makeMove(-1, 0);
+    expect(row).toEqual({ok: false, reason: "OUT_OF_BOUNDS"});
+
+    const row2 = game.makeMove(0, -1);
+    expect(row2).toEqual({ok: false, reason: "OUT_OF_BOUNDS"});
+
+    const row3 = game.makeMove(3, 3);
+    expect(row3).toEqual({ok: false, reason: "OUT_OF_BOUNDS"});
+  });
+
+  test("impede jogadas após término do jogo retornando GAME_OVER", () => {
+
+    const moves = [
+      [0,0],[1,0],
+      [0,1], [1,1],
+      [0,2]
+    ];
+    for (const [row,collum] of moves) {
+      game.makeMove(row,collum);
+    }
+
+    const afterGame = game.makeMove(2,2);
+    expect(afterGame).toEqual({ok: false, reason: "GAME_OVER"});
+  });
+
+  test("verifica alternância correta de currentPlayer entre X e O", () => {
+
+    expect(game.getCurrentPlayer()).toBe("X");
+    game.makeMove(0,0);
+
+    expect(game.getCurrentPlayer()).toBe("O");
+    game.makeMove(1,1);
+
+    expect(game.getCurrentPlayer()).toBe("X");
+    game.makeMove(0,1);
+
+    expect(game.getCurrentPlayer()).toBe("O");
+  });
+
+  test("getAvailableMoves() diminui conforme as jogadas são feitas", () => {
+    const total = size * size;
+    expect(game.getAvailableMoves().length).toBe(total);
+
+    game.makeMove(0,0);
+    expect(game.getAvailableMoves().length).toBe(total - 1);
+
+    game.makeMove(0,1);
+    expect(game.getAvailableMoves().length).toBe(total - 2);
+
+    game.makeMove(0,2);
+    expect(game.getAvailableMoves().length).toBe(total - 3);
+  });
+});

@@ -1,6 +1,7 @@
 # dependencies (bun install)
 node_modules
-
+eslint.config.mjs
+package-lock.json
 
 # output
 out

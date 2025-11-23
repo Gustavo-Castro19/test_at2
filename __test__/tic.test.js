@@ -116,13 +116,12 @@ describe("-- testes sobre condições de vitória --", () => {
 
 });
 
-describe("TicTacToeGame - comportamento básico", () => {
+describe("-- TicTacToeGame - comportamento básico --", () => {
 
-  let game;
-  let size = 3;
+  let testGame;
   
   beforeEach(() => {
-    game = new TicTacToeGame(size);
+    testGame = new TicTacToeGame(3);
   });
 
   test("sequência de jogadas leva à vitória do jogador X", () => {
@@ -133,10 +132,10 @@ describe("TicTacToeGame - comportamento básico", () => {
       [0,2]
     ]
     for (const [row,collum] of moves) {
-      game.makeMove(row,collum);
+      testGame.makeMove(row,collum);
     }
     
-    expect(game.getWinner()).toBe("X");
+    expect(testGame.getWinner()).toBe("X");
   });
 
   test("sequência de jogadas resulta em empate", () => {
@@ -149,73 +148,79 @@ describe("TicTacToeGame - comportamento básico", () => {
       [2,2],
     ];
     for (const [row,collum] of moves) {
-      game.makeMove(row,collum);
+      testGame.makeMove(row,collum);
     }
 
-    expect(game.isDraw).toBe(true);
-    expect(game.getWinner()).toBeNull();
+    expect(testGame.isDraw).toBe(true);
+    expect(testGame.getWinner()).toBeNull();
   });
 
   test("impede jogada em célula já ocupada retornando CELL_TAKEN", () => {
 
-    const row = game.makeMove(0,0);
-    const row2 = game.makeMove(0,0);
+    const firstMove = testGame.makeMove(0,0);
+    const secondMove = testGame.makeMove(0,0);
 
-    expect(row2).toEqual({ok: false, reason: "CELL_TAKEN"});
+    expect(secondMove).toEqual({ok: false, reason: "CELL_TAKEN"});
   });
 
   test("impede jogada fora do tabuleiro retornando OUT_OF_BOUNDS", () => {
 
-    const row = game.makeMove(-1, 0);
-    expect(row).toEqual({ok: false, reason: "OUT_OF_BOUNDS"});
+    const firstMove = testGame.makeMove(-1, 0);
+    expect(firstMove).toEqual({ok: false, reason: "OUT_OF_BOUNDS"});
 
-    const row2 = game.makeMove(0, -1);
-    expect(row2).toEqual({ok: false, reason: "OUT_OF_BOUNDS"});
+    const secondMove = testGame.makeMove(0, -1);
+    expect(secondMove).toEqual({ok: false, reason: "OUT_OF_BOUNDS"});
 
-    const row3 = game.makeMove(3, 3);
-    expect(row3).toEqual({ok: false, reason: "OUT_OF_BOUNDS"});
+    const thirdMove = testGame.makeMove(3, 3);
+    expect(thirdMove).toEqual({ok: false, reason: "OUT_OF_BOUNDS"});
   });
 
   test("impede jogadas após término do jogo retornando GAME_OVER", () => {
-
     const moves = [
       [0,0],[1,0],
       [0,1], [1,1],
       [0,2]
     ];
+
     for (const [row,collum] of moves) {
-      game.makeMove(row,collum);
+      testGame.makeMove(row,collum);
     }
 
-    const afterGame = game.makeMove(2,2);
+    const afterGame = testGame.makeMove(2,2);
     expect(afterGame).toEqual({ok: false, reason: "GAME_OVER"});
   });
 
   test("verifica alternância correta de currentPlayer entre X e O", () => {
 
-    expect(game.getCurrentPlayer()).toBe("X");
-    game.makeMove(0,0);
+    expect(testGame.getCurrentPlayer()).toBe("X");
+    testGame.makeMove(0,0);
 
-    expect(game.getCurrentPlayer()).toBe("O");
-    game.makeMove(1,1);
+    expect(testGame.getCurrentPlayer()).toBe("O");
+    testGame.makeMove(1,1);
 
-    expect(game.getCurrentPlayer()).toBe("X");
-    game.makeMove(0,1);
+    expect(testGame.getCurrentPlayer()).toBe("X");
+    testGame.makeMove(0,1);
 
-    expect(game.getCurrentPlayer()).toBe("O");
+    expect(testGame.getCurrentPlayer()).toBe("O");
+
   });
 
-  test("getAvailableMoves() diminui conforme as jogadas são feitas", () => {
-    const total = size * size;
-    expect(game.getAvailableMoves().length).toBe(total);
+  test("getAvailableMoves() diminui conforme as jogadas são feitas", 
+    () => {
+    let total = testGame.getAvailableMoves().length;
 
-    game.makeMove(0,0);
-    expect(game.getAvailableMoves().length).toBe(total - 1);
+    expect(testGame.getAvailableMoves().length).toBe(total);
+    total--;
 
-    game.makeMove(0,1);
-    expect(game.getAvailableMoves().length).toBe(total - 2);
+    testGame.makeMove(0,0);
+    expect(testGame.getAvailableMoves().length).toBe(total);
+    total--; 
 
-    game.makeMove(0,2);
-    expect(game.getAvailableMoves().length).toBe(total - 3);
+    testGame.makeMove(0,1);
+    expect(testGame.getAvailableMoves().length).toBe(total);
+    total--; 
+
+    testGame.makeMove(0,2);
+    expect(testGame.getAvailableMoves().length).toBe(total);
   });
 });

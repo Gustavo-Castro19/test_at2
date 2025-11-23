@@ -119,7 +119,7 @@ describe("-- testes sobre condições de vitória --", () => {
 describe("-- TicTacToeGame - comportamento básico --", () => {
 
   let testGame;
-  
+
   beforeEach(() => {
     testGame = new TicTacToeGame(3);
   });
@@ -134,7 +134,7 @@ describe("-- TicTacToeGame - comportamento básico --", () => {
     for (const [row,collum] of moves) {
       testGame.makeMove(row,collum);
     }
-    
+
     expect(testGame.getWinner()).toBe("X");
   });
 
@@ -191,36 +191,202 @@ describe("-- TicTacToeGame - comportamento básico --", () => {
   });
 
   test("verifica alternância correta de currentPlayer entre X e O", () => {
+    const moves = [[0,0],[1,1],[0,1]];
+    const alt = ['X', 'O'];
+    let player = 0;
+    getNextPlayer = (player)=> player === 0 ? 1 : 0;  
 
-    expect(testGame.getCurrentPlayer()).toBe("X");
-    testGame.makeMove(0,0);
-
-    expect(testGame.getCurrentPlayer()).toBe("O");
-    testGame.makeMove(1,1);
-
-    expect(testGame.getCurrentPlayer()).toBe("X");
-    testGame.makeMove(0,1);
-
-    expect(testGame.getCurrentPlayer()).toBe("O");
+    for(const [row,column] of moves){
+      expect(testGame.getCurrentPlayer()).toBe(alt[player]);
+      testGame.makeMove(row,column);
+      player =  getNextPlayer(player);
+    }
 
   });
 
   test("getAvailableMoves() diminui conforme as jogadas são feitas", 
     () => {
-    let total = testGame.getAvailableMoves().length;
+      const moves = [[0,0],[0,1],[0,2]]; 
+      let total = testGame.getAvailableMoves().length;
 
-    expect(testGame.getAvailableMoves().length).toBe(total);
-    total--;
+      for (const [row,collum] of moves) {
+        expect(testGame.getAvailableMoves().length).toBe(total);
+        testGame.makeMove(row,collum);
+        --total; 
+      }
 
-    testGame.makeMove(0,0);
-    expect(testGame.getAvailableMoves().length).toBe(total);
-    total--; 
+    });
 
-    testGame.makeMove(0,1);
-    expect(testGame.getAvailableMoves().length).toBe(total);
-    total--; 
+});
 
-    testGame.makeMove(0,2);
-    expect(testGame.getAvailableMoves().length).toBe(total);
+describe("-- testes da classe TicTacToeMatch --", () => {
+  let testMatch;
+
+  beforeEach(() => {
+    testMatch = new TicTacToeMatch(3);
+  });
+
+  test("Deve ser possível jogar várias partidas e o placar deve ser atualizado corretamente", () => {
+    const firstRound= [[0,0],[1,0],[0,1],[1,1],[0,2]]; 
+    for(const [row,column] of firstRound){
+      testMatch.playMove(row,column)
+    }
+
+    let score = testMatch.getScore();
+    expect(score.X).toBe(1);
+    expect(score.O).toBe(0);
+    expect(score.draws).toBe(0);
+    expect(score.roundsPlayed).toBe(1);
+
+    testMatch.startNewRound();
+
+    const secondRound = [[0,0],[0,2],[0,1],[1,1],[2,1],[2,0]] 
+    for(const [row,column] of secondRound){
+      testMatch.playMove(row,column)
+    }
+
+    score = testMatch.getScore();
+    expect(score.X).toBe(1);
+    expect(score.O).toBe(1);
+    expect(score.draws).toBe(0);
+    expect(score.roundsPlayed).toBe(2);
+
+    testMatch.startNewRound();
+    thirdRound = [[0,0],[0,1],[0,2],[1,0],[1,1],[2,2],[1,2],[2,0],[2,1]] 
+    for(const [row,column] of thirdRound){
+      testMatch.playMove(row,column);
+    }
+
+    score = testMatch.getScore();
+    expect(score.X).toBe(1);
+    expect(score.O).toBe(1);
+    expect(score.draws).toBe(1);
+    expect(score.roundsPlayed).toBe(3);
+  });
+
+  test("Deve ser possível iniciar um novo round com startNewRound(), mantendo o score acumulado", () => {
+    const round = [[0,0],[1,0],[0,1],[1,1],[0,2]] 
+    for([row, column] of round){
+      testMatch.playMove(row,column)
+    }
+
+    let score = testMatch.getScore();
+    expect(score.X).toBe(1);
+    expect(score.roundsPlayed).toBe(1);
+
+    testMatch.startNewRound();
+
+    score = testMatch.getScore();
+    expect(score.X).toBe(1);
+    expect(score.O).toBe(0);
+    expect(score.draws).toBe(0);
+    expect(score.roundsPlayed).toBe(1);
+
+    const board = testMatch.game.getBoard();
+    expect(board.every(row => row.every(cell => cell === null))).toBe(true);
+    expect(testMatch.game.getCurrentPlayer()).toBe("X");
+    expect(testMatch.game.isGameOver()).toBe(false);
+  });
+
+  test("Placar deve contabilizar múltiplas vitórias de X corretamente", () => {
+    const victory = [[0,0],[1,0],[0,1],[1,1],[0,2]]; 
+    for(let i=0; i<10; i++){
+      for(const [row, column] of victory){
+        testMatch.playMove(row,column); 
+      }
+      testMatch.startNewRound();
+    }
+
+    let score = testMatch.getScore();
+    expect(score.X).toBe(10);
+    expect(score.O).toBe(0);
+    expect(score.draws).toBe(0);
+    expect(score.roundsPlayed).toBe(10);
+  });
+
+  test("Placar deve contabilizar múltiplas vitórias de O corretamente", () => {
+    const victory = [[0,0],[1,0],[0,1],[1,1],[2,2],[1,2]]
+    for(let i=0; i<10; ++i){
+      for(const [row,column] of victory){
+        testMatch.playMove(row,column); 
+      }
+      testMatch.startNewRound();
+    }
+
+    let score = testMatch.getScore();
+    expect(score.X).toBe(0);
+    expect(score.O).toBe(10);
+    expect(score.draws).toBe(0);
+    expect(score.roundsPlayed).toBe(10);
+  });
+
+  test("Placar deve contabilizar múltiplos empates corretamente", () => {
+    const draw = [[0, 0],[0,1],[0,2],
+      [1,0],[1,1],[2,2],
+      [1,2],[2,0],[2,1]];
+
+    for(let i=0;i<10;++i ){
+      for(const[row,column] of draw){
+        testMatch.playMove(row,column);
+      }
+      testMatch.startNewRound();
+    }
+
+    let score = testMatch.getScore();
+    expect(score.X).toBe(0);
+    expect(score.O).toBe(0);
+    expect(score.draws).toBe(10);
+    expect(score.roundsPlayed).toBe(10);
+
+  });
+
+  test("Placar deve contabilizar combinação de vitórias de X, O e empates", () => {
+
+    const xVictory = [[0,0],[1,0],[0,1],[1,1],[0,2]]; 
+    for(let i=0; i<10; i++){
+      for(const [row, column] of xVictory){
+        testMatch.playMove(row,column); 
+      }
+      testMatch.startNewRound();
+    }
+
+    const oVictory = [[0,0],[1,0],[0,1],[1,1],[2,2],[1,2]]
+    for(let i=0; i<10; ++i){
+      for(const [row,column] of oVictory){
+        testMatch.playMove(row,column); 
+      }
+      testMatch.startNewRound();
+    }
+
+    const draw = [[0, 0],[0,1],[0,2],
+      [1,0],[1,1],[2,2],
+      [1,2],[2,0],[2,1]];
+    for(let i=0;i<10;++i ){
+      for(const[row,column] of draw){
+        testMatch.playMove(row,column);
+      }
+      testMatch.startNewRound();
+    }
+
+    let score = testMatch.getScore();
+    expect(score.X).toBe(10);
+    expect(score.O).toBe(10);
+    expect(score.draws).toBe(10);
+    expect(score.roundsPlayed).toBe(30);
+  });
+
+  test("getState() deve retornar o estado completo do match", () => {
+    testMatch.playMove(0, 0);
+    testMatch.playMove(1, 0); 
+
+    const state = testMatch.getState();
+
+    expect(state).toHaveProperty('score');
+    expect(state).toHaveProperty('game');
+    expect(state.score.X).toBe(0);
+    expect(state.score.O).toBe(0);
+    expect(state.score.draws).toBe(0);
+    expect(state.score.roundsPlayed).toBe(0);
+    expect(state.game.currentPlayer).toBe('X');
   });
 });
